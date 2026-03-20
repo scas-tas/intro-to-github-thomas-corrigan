@@ -1,3 +1,23 @@
+'''Heya tom. Not 100% sure I'm clear on the issue I think it is that Tim and tim are not treated as the same. Is that what you are getting at? If so you likely need to fix it with something like this. 
+while True:
+    name = input("Name: ")
+    if name == "":  # See if Name is blank and exit the loop if it is
+        break
+
+    name_nospace = name.strip()  # Remove spaces at the start and end of string.
+
+    while True:
+        amount_input = input("Cookie dough sold: ")
+        amount = int(amount_input)
+        break
+    
+    if name_nospace in sales:
+        sales[name_nospace] += amount
+    else:
+        sales[name_nospace] = amount
+        order.append(name_nospace)
+'''
+
 def redeem_prizes(points):
     prizes = 0
     threshold = 5
