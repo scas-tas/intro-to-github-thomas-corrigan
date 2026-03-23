@@ -35,11 +35,10 @@ order = []
 # Create Blank List And Dictionary
 
 while True:
-    name = input("Name: ")
+    name = input("Name: ").title()
     if name == "":  # See if Name is blank and exit the loop if it is
         break
 
-    name_lower = name.lower()
     name_nospace = name.strip()
 
     # Remove The Spaces And Start and End of string
@@ -51,10 +50,13 @@ while True:
 
     # Assuming this error is complaining about the space but this solution seems to work
 
-    while True:
-        amount_input = input("Cookie dough sold: ")
-        amount = int(amount_input)
-        break
+    while True: 
+        amount_input = input("Cookie dough sold: ") 
+        try: 
+            amount = int(amount_input) 
+            break 
+        except ValueError:
+            print("Please enter a valid integer for the cookie dough sold.")
     # breakpoint()
     if name in sales:
         sales[name_nospace] += amount
@@ -69,4 +71,3 @@ for name_nospace in order:
     print(
         f"{name_nospace} has {points} points and can redeem {redeem_prizes(points)} prize(s)."
     )
-
