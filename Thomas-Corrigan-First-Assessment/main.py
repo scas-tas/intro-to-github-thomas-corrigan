@@ -1,22 +1,5 @@
-'''Heya tom. Not 100% sure I'm clear on the issue I think it is that Tim and tim are not treated as the same. Is that what you are getting at? If so you likely need to fix it with something like this. 
-while True:
-    name = input("Name: ")
-    if name == "":  # See if Name is blank and exit the loop if it is
-        break
+file_path = "db.txt"
 
-    name_nospace = name.strip()  # Remove spaces at the start and end of string.
-
-    while True:
-        amount_input = input("Cookie dough sold: ")
-        amount = int(amount_input)
-        break
-    
-    if name_nospace in sales:
-        sales[name_nospace] += amount
-    else:
-        sales[name_nospace] = amount
-        order.append(name_nospace)
-'''
 
 def redeem_prizes(points):
     prizes = 0
@@ -26,29 +9,47 @@ def redeem_prizes(points):
         threshold *= 2
     return prizes
 
+file_path = "db.txt"
+
+
+def load_scores():
+    sales = {}
+    order = []
+
+    try:
+        with open(file_path, "r") as f:
+            for line in f:
+                name, points = line.strip().split(",")
+                sales[name] = int(points)
+                order.append(name)
+    except FileNotFoundError:
+        pass  # file doesn't exist yet
+
+    return sales, order
+
+
+def save_scores(sales):
+    with open(file_path, "w") as f:
+        for name, points in sales.items():
+            f.write(f"{name},{points}\n")
+
 
 print("COOKIE DOUGH SALES POINTS AND PRIZES TRACKER")
 
-sales = {}
-order = []
+# sales = {}
+# order = []
+sales, order = load_scores()
+# Changed to using the file
 
 # Create Blank List And Dictionary
 
 while True:
+
     name = input("Name: ").title()
     if name == "":  # See if Name is blank and exit the loop if it is
         break
 
     name_nospace = name.strip()
-
-    # Remove The Spaces And Start and End of string
-    # Without this I get error
-    # "Traceback (most recent call last): File "c:\Users\tacor\Documents\GitHub\intro-to-github-thomas-corrigan\Thomas-Corrigan-First-Assessment\main.py",
-    # line 38, in <module>points = sales[name.strip()]~~~~~
-    # ^^^^^^^^^^^^^^
-    # KeyError: ''"
-
-    # Assuming this error is complaining about the space but this solution seems to work
 
     while True: 
         amount_input = input("Cookie dough sold: ") 
@@ -63,6 +64,7 @@ while True:
     else:
         sales[name_nospace] = amount
         order.append(name_nospace)
+    save_scores(sales)
 
 print("Selling over! Let's see how everyone did!")
 
