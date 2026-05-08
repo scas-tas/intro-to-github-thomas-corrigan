@@ -11,8 +11,8 @@ import random
 class Snake:
 
     def __init__(self):
-        self.size = 10
-        self.body = [(100, 50), (90, 50), (80, 50)]
+        # Store body in grid coordinates, not pixels
+        self.grid_body = [(10, 5), (9, 5), (8, 5)]
         self.direction = 'RIGHT'
         self.change_to = self.direction
 
@@ -24,34 +24,34 @@ class Snake:
             self.direction = self.change_to
 
     def move(self):
-        x, y = self.body[0]
+        cx, cy = self.grid_body[0]
 
         if self.direction == 'UP':
-            y -= self.size
+            cy -= 1
         elif self.direction == 'DOWN':
-            y += self.size
+            cy += 1
         elif self.direction == 'LEFT':
-            x -= self.size
+            cx -= 1
         elif self.direction == 'RIGHT':
-            x += self.size
+            cx += 1
 
-        self.body = [(x, y)] + self.body[:-1]
+        self.grid_body = [(cx, cy)] + self.grid_body[:-1]
 
     def grow(self):
-        self.body.append(self.body[-1])
+        self.grid_body.append(self.grid_body[-1])
 
-    def draw(self, surface):
-        for segment in self.body:
+    def draw(self, surface, tile):
+        for (cx, cy) in self.grid_body:
             pygame.draw.rect(surface, (0, 255, 0),
-                             pygame.Rect(segment[0], segment[1], self.size, self.size))
+                             pygame.Rect(cx * tile, cy * tile, tile, tile))
 
-    def check_collision(self, width, height):
-        x, y = self.body[0]
+    def check_collision(self, cols, rows):
+        cx, cy = self.grid_body[0]
 
-        if x < 0 or x >= width or y < 0 or y >= height:
+        if cx < 0 or cx >= cols or cy < 0 or cy >= rows:
             return True
 
-        if (x, y) in self.body[1:]:
+        if (cx, cy) in self.grid_body[1:]:
             return True
 
         return False
@@ -59,49 +59,77 @@ class Snake:
 
 class Food:
 
-    def __init__(self, width, height):
-        self.size = 10
-        self.position = (random.randint(0, (width - self.size) // self.size) * self.size,
-                         random.randint(0, (height - self.size) // self.size) * self.size)
+    def __init__(self, cols, rows):
+        self.grid_pos = (random.randint(0, cols - 1),
+                         random.randint(0, rows - 1))
 
-    def spawn(self, width, height):
-        self.position = (random.randint(0, (width - self.size) // self.size) * self.size,
-                         random.randint(0, (height - self.size) // self.size) * self.size)
+    def spawn(self, cols, rows):
+        self.grid_pos = (random.randint(0, cols - 1),
+                         random.randint(0, rows - 1))
 
-    def draw(self, surface):
+    def draw(self, surface, tile):
+        cx, cy = self.grid_pos
         pygame.draw.rect(surface, (255, 0, 0),
-                         pygame.Rect(self.position[0], self.position[1], self.size, self.size))
+                         pygame.Rect(cx * tile, cy * tile, tile, tile))
+        
+class Cheese:
 
+    def __init__(self, cols, rows):
+        self.grid_pos = (random.randint(0, cols - 1),
+                         random.randint(0, rows - 1))
 
+    def spawn(self, cols, rows):
+        self.grid_pos = (random.randint(0, cols - 1),
+                         random.randint(0, rows - 1))
+
+    def draw(self, surface, tile):
+        cx, cy = self.grid_pos
+        pygame.draw.rect(surface, (255, 255, 0),
+                         pygame.Rect(cx * tile, cy * tile, tile, tile))
+        # pygame.draw.li(surface, (255, 255, 0), )
 def game_loop():
 
     pygame.init()
     width, height = 640, 480
-    window = pygame.display.set_mode((width, height))
+    window = pygame.display.set_mode((width, height), pygame.RESIZABLE)
     pygame.display.set_caption("Snake Game")
     clock = pygame.time.Clock()
 
-    snake = Snake()
-    food = Food(width, height)
+    # Tile size is derived from window size — 64 columns fits nicely at 640px
+    def get_tile(w, h):
+        return max(8, min(w, h) // 48)
 
-    
+    def get_grid(w, h, tile):
+        return w // tile, h // tile
+
+    tile = get_tile(width, height)
+    cols, rows = get_grid(width, height, tile)
+
+    snake = Snake()
+    food = Food(cols, rows)
+    cheese = Cheese(cols, rows)
+
     font = pygame.font.SysFont('Arial', 24)
     boosting = False
     score = 0
-    score_divided = int(score/1000)
-    while True:
-        if score > 0:
-            if boosting:
-                score1 = score_divided // 5
-                tick = 15 + score1 + 50
-            else:
-                score1 = score_divided // 5
-                tick = 15 + score1 * 5
-                 
-        else:
-            score1 = score_divided // 5
-            tick = 15 + score1 * 5
 
+    while True:
+        # Recalculate tile and grid every frame so resizing is instant
+        width, height = window.get_size()
+        tile = get_tile(width, height)
+        cols, rows = get_grid(width, height, tile)
+
+        score_divided = score // 1000
+
+        
+
+        if boosting and score > 0:
+            tick = 15 + (score_divided // 5) * 2 + 50
+            score -= 50
+        else:
+            tick = 15 + (score_divided // 5) * 2
+        print(f"Clock: {clock}")
+        print(f"Tick: {tick}")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -115,6 +143,8 @@ def game_loop():
                     snake.change_to = 'LEFT'
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     snake.change_to = 'RIGHT'
+
+
                 elif event.key == pygame.K_SPACE:
                     boosting = True
             elif event.type == pygame.KEYUP:
@@ -124,20 +154,36 @@ def game_loop():
         snake.change_direction()
         snake.move()
 
-        if snake.body[0] == food.position:
+        if snake.grid_body[0] == food.grid_pos:
             snake.grow()
-            food.spawn(width, height)
-            score += 1000
+            food.spawn(cols, rows)
 
-        if snake.check_collision(width, height):
+            
+            if boosting:
+                score += 3000
+            else:
+                score += 1000
+
+        if snake.grid_body[0] == cheese.grid_pos:
+            snake.grow()
+            cheese.spawn(cols, rows)
+            
+            if boosting:
+                score += 8000
+            else:
+                score += 4000
+
+        if snake.check_collision(cols, rows):
             pygame.quit()
             sys.exit()
 
         window.fill((0, 0, 0))
-        snake.draw(window)
-        food.draw(window)
+        snake.draw(window, tile)
+        food.draw(window, tile)
+        cheese.draw(window, tile)
 
-        score_text = font.render(f'Score: {int(score/1000)}', True, (255, 255, 255))
+        font = pygame.font.SysFont('Arial', max(12, tile * 2))
+        score_text = font.render(f'Score: {score / 1000}', True, (255, 255, 255))
         window.blit(score_text, (10, 10))
 
         pygame.display.flip()

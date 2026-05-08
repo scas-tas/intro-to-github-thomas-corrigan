@@ -163,7 +163,6 @@ def addtoscores():
 
         save_scores(sales)
 
-    # 👇 THIS is what you wanted (runs AFTER adding scores)
     while True:
         choice = input("Do you want to redeem prizes now? (yes/no): ").lower().strip()
 
