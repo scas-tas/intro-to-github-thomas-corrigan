@@ -14,8 +14,10 @@ class Snake:
     def __init__(self):
         # Store body in grid coordinates, not pixels
         self.grid_body = [(10, 5), (9, 5), (8, 5)]
-        self.direction = 'RIGHT'
+        self.direction = 'STOPPED'
         self.change_to = self.direction
+
+
 
     def change_direction(self):
         if any((self.change_to == 'UP' and not self.direction == 'DOWN',
@@ -35,8 +37,13 @@ class Snake:
             cx -= 1
         elif self.direction == 'RIGHT':
             cx += 1
-
+        elif self.direction == 'STOPPED':
+            cx += 0
+            cy += 0
+        
         self.grid_body = [(cx, cy)] + self.grid_body[:-1]
+
+
 
     def grow(self):
         self.grid_body.append(self.grid_body[-1])
@@ -134,7 +141,11 @@ def game_loop():
     boosting = False
     score = 0
     score_old = 0
+
+    start = True
+    gameover = False
     while True:
+        print(f"Start: {start}")
         # Recalculate tile and grid every frame so resizing is instant
         width, height = window.get_size()
         tile = get_tile(width, height)
@@ -164,9 +175,11 @@ def game_loop():
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     snake.change_to = 'RIGHT'
 
-
                 elif event.key == pygame.K_SPACE:
                     boosting = True
+                    
+                    start = False
+
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
                     boosting = False
@@ -177,7 +190,7 @@ def game_loop():
         if snake.grid_body[0] == food.grid_pos:
             snake.grow()
             food.spawn(cols, rows)
-            foodfake.spawn(cols, rows)
+            # foodfake.spawn(cols, rows)
             
 
             if boosting:
@@ -208,12 +221,18 @@ def game_loop():
             pygame.quit()
             sys.exit()
 
-        window.fill((0, 0, 0))
-        snake.draw(window, tile)
-        food.draw(window, tile)
-        foodfake.draw(window, tile)
-        cheese.draw(window, tile)
-        wall.draw(window, tile)
+        if start:
+            window.fill((255, 255, 255))
+            font = pygame.font.SysFont('Arial', max(12, tile * 2))
+            score_text = font.render(f'Score: {score / 1000} Score No Boost: {score_old}', True, (255, 255, 255))
+
+        else:
+            window.fill((0, 0, 0))
+            snake.draw(window, tile)
+            food.draw(window, tile)
+            # foodfake.draw(window, tile)
+            cheese.draw(window, tile)
+            wall.draw(window, tile)
         
 
         font = pygame.font.SysFont('Arial', max(12, tile * 2))
