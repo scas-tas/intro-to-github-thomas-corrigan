@@ -6,7 +6,7 @@ Demonstrates: abstraction, encapsulation, multiple class instances
 import pygame
 import sys
 import random
-import os
+
 
 
 class Snake:
@@ -17,7 +17,12 @@ class Snake:
         self.direction = 'STOPPED'
         self.change_to = self.direction
 
-
+    def reset(self):
+        # Store body in grid coordinates, not pixels
+        self.grid_body = [(10, 5), (9, 5), (8, 5)]
+        self.direction = 'STOPPED'
+        self.change_to = self.direction
+        
 
     def change_direction(self):
         if any((self.change_to == 'UP' and not self.direction == 'DOWN',
@@ -67,19 +72,30 @@ class Snake:
 class Wall:
 
     def __init__(self, cols, rows):
-          self.grid_pos = (cols // 2, rows // 2)  
+        self.spawn(cols, rows)
 
     def spawn(self, cols, rows):
-        self.grid_pos = (cols // 2, rows // 2)
+
+        center_x = cols // 2
+        center_y = rows // 2
+
+        # Vertical wall made of tiles
+        self.grid_positions = []
+
+        for i in range(-8, 9):
+            self.grid_positions.append((center_x, center_y + i))
+
+    def reset_wall_pos(self, cols, rows):
+        self.spawn(cols, rows)
 
     def draw(self, surface, tile):
-        
-        cx, cy = self.grid_pos
-        
-        pygame.draw.rect(surface, (255, 255, 255),
-                         pygame.Rect(cx * tile, cy * tile - 120, tile, 240))
 
-
+        for (cx, cy) in self.grid_positions:
+            pygame.draw.rect(
+                surface,
+                (255, 255, 255),
+                pygame.Rect(cx * tile, cy * tile, tile, tile)
+            )
 
 class Food:
 
@@ -111,14 +127,27 @@ class Cheese:
         pygame.draw.rect(surface, (255, 255, 0),
                          pygame.Rect(cx * tile, cy * tile, tile, tile))
         # pygame.draw.li(surface, (255, 255, 0), )
+
+
+
 def game_loop():
 
     pygame.init()
     #width, height = 640, 480
-    width, height = 1280, 720
-    window = pygame.display.set_mode((width, height))#, pygame.RESIZABLE)
+    # width, height = 1280, 720
+    # width, height = 0, 0
+    # window = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+
+# Get current monitor resolution
+    info = pygame.display.Info()
+    width, height = info.current_w, info.current_h
+
+# Create fullscreen window
+    window = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+    
     pygame.display.set_caption("Snake Game")
     clock = pygame.time.Clock()
+    
 
     # Tile size is derived from window size — 64 columns fits nicely at 640px
     def get_tile(w, h):
@@ -141,11 +170,15 @@ def game_loop():
     boosting = False
     score = 0
     score_old = 0
+    counter1 = 0
+    highscore = 0
+
 
     start = True
     gameover = False
+
     while True:
-        print(f"Start: {start}")
+
         # Recalculate tile and grid every frame so resizing is instant
         width, height = window.get_size()
         tile = get_tile(width, height)
@@ -155,12 +188,19 @@ def game_loop():
 
         
 
-        if boosting and score > 0:
-            tick = 15 + (score_divided // 5) * 2 + 50
-            score -= 100
-        else:
-            tick = 15 + (score_divided // 5) * 2
-        print(f"Tick: {tick}")
+        if gameover == False:
+            score_divided = score // 1000
+            if boosting and score > 0:
+                tick = 15 + (score_divided // 5) * 2 + 50
+                score -= 100
+            else:
+                tick = 15 + (score_divided // 5) * 2
+        elif gameover == True:
+            tick = 0
+
+
+            
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -174,20 +214,40 @@ def game_loop():
                     snake.change_to = 'LEFT'
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     snake.change_to = 'RIGHT'
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+
 
                 elif event.key == pygame.K_SPACE:
                     boosting = True
                     if start == True:
                         snake.change_to = 'RIGHT'
                         start = False
+                    elif gameover:
+                        start = True
+                        gameover = False
+
+                        #Reset Snake to Start Position
+                        snake.reset()
+
+                        #Zero All Scores
+                        score = 0
+                        score_divided = 0
+                        score_old = 0
+
+                        
+
                     
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
                     boosting = False
 
-        snake.change_direction()
-        snake.move()
+        if not start and not gameover:
+            snake.change_direction()
+            snake.move()
 
         if snake.grid_body[0] == food.grid_pos:
             snake.grow()
@@ -202,11 +262,9 @@ def game_loop():
                 score += 1000
                 score_old += 1
 
-        hx, hy = snake.grid_body[0]
-        wx, wy = wall.grid_pos
-        if hx == wx and abs(hy - wy) <= 8:
-            pygame.quit()
-            sys.exit()
+        if snake.grid_body[0] in wall.grid_positions:
+            gameover = True
+            
 
         if snake.grid_body[0] == cheese.grid_pos:
             snake.grow()
@@ -220,18 +278,57 @@ def game_loop():
                 score_old += 4
 
         if snake.check_collision(cols, rows):
-            pygame.quit()
-            sys.exit()
+            gameover = True
+            # pygame.quit()
+            # sys.exit()
 
+        escape_font = pygame.font.SysFont('Arial', 20)
+
+        
         if start:
+
             window.fill((0,0,0))
-            # score_font = pygame.font.SysFont('Arial', max(12, tile * 2))
-            # score_text = score_font.render(f'Score: {score / 1000} Score No Boost: {score_old}', True, (255, 255, 255))
 
             start_font = pygame.font.SysFont('Arial', max(40, tile * 2))
-            start_text = start_font.render(f'Start',True, (255,255,255))
-            window.blit(start_text, (width // 2, rows // 2))
-            print(f"Cols: {cols}, Rows: {rows}")
+            start_text = start_font.render(f'Press Space to Start',True, (255,255,255))
+            
+            window.blit(start_text, (width // 2 - start_text.get_width() // 2, height // 2 - 60))
+            #print(f"Cols: {width}, Rows: {height}")
+            escape_text = escape_font.render("Press ESC To Exit", True, (255,255,255))
+            window.blit(escape_text, (10,10))
+        elif gameover:
+            counter1 += 1
+            if score_old > highscore:
+                highscore = score_old
+
+            window.fill((0, 0, 0))
+
+            gameover_font = pygame.font.SysFont('papyrus', max(60, tile * 4))
+            gameover_text = gameover_font.render('GAME OVER. Press Space to restart', True, (180, 0, 0))
+            gameover_text1 = gameover_font.render('Or wait till the game closes', True, (180, 0, 0))
+
+
+            score_font = pygame.font.SysFont('papyrus', max(28, tile * 2))
+            score_text = score_font.render(f'Score: {score // 1000}', True, (140, 0, 0))
+
+            highscore_text = score_font.render(f'Highscore: {highscore}', True, (140, 0, 0))
+
+
+
+            window.blit(gameover_text, (width // 2 - gameover_text.get_width() // 2, height // 2 - 60))
+            window.blit(gameover_text1, (width // 2 - gameover_text1.get_width() // 2, height // 2 ))
+
+            window.blit(highscore_text,    (width // 2 - highscore_text.get_width() // 2,    height // 2 + 108))
+            window.blit(score_text,(width // 2 - score_text.get_width() // 2,    height // 2 + 80))
+            escape_text = escape_font.render("Press ESC To Exit", True, (255,255,255))
+            window.blit(escape_text, (10,10))
+
+            print(f"Counter: {counter1}")
+
+            if counter1 > 1500:
+                pygame.quit()
+                sys.exit()
+
         else:
             window.fill((0, 0, 0))
             snake.draw(window, tile)
@@ -245,13 +342,9 @@ def game_loop():
             font = pygame.font.SysFont('Arial', max(12, tile * 2))
             score_text = font.render(f'Score: {score / 1000} Score No Boost: {score_old}', True, (255, 255, 255))
             window.blit(score_text, (10, 10))
-        
-
-        
 
         pygame.display.flip()
         clock.tick(tick)
-
 
 if __name__ == "__main__":
     game_loop()
