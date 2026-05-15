@@ -4,10 +4,17 @@ class Account:
        self.balance = balance
        self.owner = owner
 
-    def print_attrib(self):
-       print(self.balance)
-       print(self.owner)
+    def deposit(self, amount):
+       self.balance += amount 
 
+    def withdraw(self, amount):
+       self.balance -= amount
+
+    def __str__(self):
+       return f"Name: {self.owner}, Balance: {self.balance}"
+
+    def print_attrib(self):
+       print(f"Name: {self.owner}, Balance: {self.balance}")
 
        
 # Mainline
@@ -16,9 +23,5 @@ hugo = Account("57167", 51002, "Hugo")
 thomas = Account("743321", 97155678, "Thomas")
 
 
-for people in [hugo, thomas, alice]:
-   print(people.owner)
 
-hugo.print_attrib()
-thomas.print_attrib()
 
