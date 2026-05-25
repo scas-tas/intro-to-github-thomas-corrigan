@@ -1,0 +1,31 @@
+# Create empty 3x3 grid
+grid = [
+   [' ', ' ', ' '],
+   [' ', ' ', ' '],
+   [' ', ' ', ' ']
+]
+
+
+def draw_grid():
+   for row in grid:
+       print('|'.join(row))
+       print('-----')
+
+
+#Mainline 
+# Draw the grid
+draw_grid()
+
+
+# Ask for input
+row = int(input("Which row? (0-2): "))
+col = int(input("Which column? (0-2): "))
+
+
+# Place the X
+grid[row][col] = 'X'
+
+
+# Draw again
+print("\nUpdated grid:")
+draw_grid()
