@@ -9,16 +9,29 @@ Note: trucks are numbered 1-5 (truck 1 is the first truck), but Python lists are
 
 
 def combine_trucks(trucks, first_truck, second_truck):
-    # TODO: return the total packages in first_truck and second_truck
     
-    pass
-
-
+    truck1 = first_truck-1  # Move numbers by -1 to move the number to the correct index
+    truck2 = second_truck-1 # Move numbers by -1 to move the number to the correct index
+    total = trucks[truck1] + trucks[truck2]
+    return total
+    
 
 def main():
-    trucks = [4, 7, 2, 6, 9]
-    print(combine_trucks(trucks, 2, 4))  # Expected: 13
-    print(combine_trucks(trucks, 1, 3))  # Expected: 6
+
+
+    trucks = [4, 7, 2, 6, 9] # First Case
+    # trucks = [5,10,15,0,0] # Second Case
+    # trucks=[0,0,0,0,1000] # Third Case
+
+    print(combine_trucks(trucks, 2, 4))  # First Case
+    # print(combine_trucks(trucks, 1, 3))  # Second Case
+    # print(combine_trucks(trucks, "5", 5))  # Third Case
+
+
+
+    
+
+
 
 
 main()
