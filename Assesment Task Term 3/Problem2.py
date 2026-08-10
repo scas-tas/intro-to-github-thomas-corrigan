@@ -9,10 +9,10 @@
 # classroom=[[0,0],[0,0]] # Test case 1
 
 
-# Test Cases for most_empty_row
-# classroom=[[1,2,0],[0,3,4],[5,0,0]] # Test case 1
-# classroom=[[1,2,3],[0,0,4],[5,0,0]] # Test case 1 
-# classroom=[[1,2],[3,4]] # Test case 1
+# # Test Cases for most_empty_row
+classroom=[[1,2,0],[0,3,4],[5,0,0]] # Test case 1
+classroom=[[1,2,3],[0,0,4],[5,0,0]] # Test case 1 
+classroom=[[1,2],[3,4]] # Test case 1
 
 
 
@@ -46,3 +46,4 @@ print(f"Empty Seats: {count_empty(classroom)}")
 print(f"Most Empty Row: {most_empty_row(classroom)}")
 for class1 in classroom:
     print(class1)
+
