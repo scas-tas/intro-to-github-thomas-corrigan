@@ -19,13 +19,13 @@ def combine_trucks(trucks, first_truck, second_truck):
 def main():
 
 
-    trucks = [4, 7, 2, 6, 9] # First Case
+    # trucks = [4, 7, 2, 6, 9] # First Case
     # trucks = [5,10,15,0,0] # Second Case
-    # trucks=[0,0,0,0,1000] # Third Case
+    trucks=[0,0,0,0,1000] # Third Case
 
-    print(combine_trucks(trucks, 2, 4))  # First Case
+    # print(combine_trucks(trucks, 2, 4))  # First Case
     # print(combine_trucks(trucks, 1, 3))  # Second Case
-    # print(combine_trucks(trucks, "5", 5))  # Third Case
+    print(combine_trucks(trucks, 5, 5))  # Third Case
 
 
 
